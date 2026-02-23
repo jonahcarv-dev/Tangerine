@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Website Example - Home</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./widget/widget.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Welcome to Website Example</h1>
+      <p>This is a simple local homepage in the <strong>website_example</strong> folder.</p>
+      <p>You can edit this file to quickly prototype your layout and content.</p>
+      <a class="button" href="./widget/">Open Widget Folder</a>
+    </main>
+
+    <section class="chat-widget" aria-label="Chat widget" data-n8n-webhook="https://n8n.srv971592.hstgr.cloud/webhook-test/tangerine-test">
+      <button class="chat-toggle" id="chatToggle" aria-expanded="false" aria-controls="chatPanel">Chat</button>
+
+      <div class="chat-panel" id="chatPanel" hidden>
+        <header class="chat-header">Simple Chat Bot</header>
+        <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages">
+          <div class="message bot">Hi! Ask me about this page.</div>
+        </div>
+        <form class="chat-form" id="chatForm">
+          <input id="chatInput" type="text" placeholder="Type a message..." autocomplete="off" required />
+          <button type="submit">Send</button>
+        </form>
+      </div>
+    </section>
+
+    <script src="./widget/widget.js"></script>
+  </body>
+</html>
