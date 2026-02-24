@@ -404,7 +404,7 @@
 			var n8nReply = await getN8nReply(userText);
 			var replyText = n8nReply || getBotReply(userText);
 			if (typingMessage) {
-				typingMessage.textContent = replyText;
+				typingMessage.innerHTML = linkify(replyText);
 				currentMessages.push({ role: 'bot', text: replyText });
 				ConversationStore.save(currentSessionId, currentMessages);
 			}
