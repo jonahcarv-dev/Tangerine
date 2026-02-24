@@ -140,7 +140,7 @@
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({
-				message: userText,
+				chatInput: userText,
 				sessionId: currentSessionId,
 				source: 'website-widget',
 				timestamp: new Date().toISOString()
