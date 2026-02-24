@@ -205,6 +205,41 @@
 	color: var(--tw-navy);
 }
 
+.message.bot.typing {
+	display: flex;
+	gap: 4px;
+	align-items: center;
+	padding: 0.7rem 0.9rem;
+}
+
+.message.bot.typing .dot {
+	width: 7px;
+	height: 7px;
+	border-radius: 50%;
+	background: var(--tw-navy);
+	opacity: 0.4;
+	animation: dotBounce 1.2s ease-in-out infinite;
+}
+
+.message.bot.typing .dot:nth-child(2) {
+	animation-delay: 0.15s;
+}
+
+.message.bot.typing .dot:nth-child(3) {
+	animation-delay: 0.3s;
+}
+
+@keyframes dotBounce {
+	0%, 60%, 100% {
+		transform: translateY(0);
+		opacity: 0.4;
+	}
+	30% {
+		transform: translateY(-5px);
+		opacity: 1;
+	}
+}
+
 .message.bot a {
 	color: var(--tw-orange-hover);
 	text-decoration: underline;

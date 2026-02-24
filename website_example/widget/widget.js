@@ -397,19 +397,24 @@
 		appendMessage(userText, 'user');
 		input.value = '';
 
-		appendMessage('...', 'bot');
-		var typingMessage = messages.lastElementChild;
+		var typingMessage = document.createElement('div');
+		typingMessage.className = 'message bot typing';
+		typingMessage.innerHTML = '<span class="dot"></span><span class="dot"></span><span class="dot"></span>';
+		messages.appendChild(typingMessage);
+		messages.scrollTop = messages.scrollHeight;
 
 		try {
 			var n8nReply = await getN8nReply(userText);
 			var replyText = n8nReply || getBotReply(userText);
 			if (typingMessage) {
+				typingMessage.classList.remove('typing');
 				typingMessage.innerHTML = linkify(replyText);
 				currentMessages.push({ role: 'bot', text: replyText });
 				ConversationStore.save(currentSessionId, currentMessages);
 			}
 		} catch (_error) {
 			if (typingMessage) {
+				typingMessage.classList.remove('typing');
 				typingMessage.textContent = 'There was a connection issue. Using local fallback response.';
 				currentMessages.push({ role: 'bot', text: typingMessage.textContent });
 				ConversationStore.save(currentSessionId, currentMessages);
