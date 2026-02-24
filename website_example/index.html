@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Website Example - Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Mulish:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css" />
     <link rel="stylesheet" href="./widget/widget.css" />
   </head>
@@ -16,18 +19,58 @@
     </main>
 
     <section class="chat-widget" aria-label="Chat widget" data-n8n-webhook="https://n8n.srv971592.hstgr.cloud/webhook-test/tangerine-test">
-      <button class="chat-toggle" id="chatToggle" aria-expanded="false" aria-controls="chatPanel">Chat</button>
 
       <div class="chat-panel" id="chatPanel" hidden>
-        <header class="chat-header">Simple Chat Bot</header>
+        <header class="chat-header">
+          <img class="chat-header-logo"
+               src="https://cdn.prod.website-files.com/620fb9cf28375f469cd866c4/622768a4ed5b132ece88626f_Group%2011701.svg"
+               alt="Tangerine Search" />
+          <div class="chat-header-actions">
+            <button class="chat-header-btn" id="btnNewConversation" title="New conversation" aria-label="Start new conversation">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <line x1="8" y1="3" x2="8" y2="13"/>
+                <line x1="3" y1="8" x2="13" y2="8"/>
+              </svg>
+            </button>
+            <button class="chat-header-btn" id="btnPastConversations" title="Past conversations" aria-label="View past conversations">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <line x1="3" y1="4" x2="13" y2="4"/>
+                <line x1="3" y1="8" x2="13" y2="8"/>
+                <line x1="3" y1="12" x2="10" y2="12"/>
+              </svg>
+            </button>
+          </div>
+        </header>
+        <div class="chat-conversations" id="chatConversations" hidden></div>
         <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-label="Chat messages">
-          <div class="message bot">Hi! Ask me about this page.</div>
+          <div class="message bot">Hi! Ask me anything about Tangerine Search.</div>
+        </div>
+        <div class="chat-faq" id="chatFaq">
+          <div class="chat-faq-track" id="chatFaqTrack"></div>
         </div>
         <form class="chat-form" id="chatForm">
           <input id="chatInput" type="text" placeholder="Type a message..." autocomplete="off" required />
           <button type="submit">Send</button>
         </form>
       </div>
+
+      <div class="chat-tooltip" id="chatTooltip" hidden>
+        I know everything about Tangerine, ask me anything!
+        <button class="chat-tooltip-close" id="chatTooltipClose" aria-label="Dismiss tooltip">&times;</button>
+      </div>
+
+      <button class="chat-toggle" id="chatToggle" aria-expanded="false" aria-controls="chatPanel" aria-label="Open Tangerine chat">
+        <!-- Tangerine circle icon (Paths 9-15 from Logo_1.svg) -->
+        <svg viewBox="122 -2 84 84" fill="#ffffff" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M245.6,34.873l-.168.24-.049.07a1.393,1.393,0,0,1-2.288-1.59l.179-.258Z" transform="translate(-113.312 -15.554)"/>
+          <path d="M243.093,33.593l-.046.071a1.393,1.393,0,0,0,2.334,1.519l.049-.07.167-.24-2.324-1.539-.179.259" transform="translate(-113.312 -15.554)"/>
+          <path d="M270.943,0a39.915,39.915,0,0,0-9.749,1.22,39.581,39.581,0,0,0-17.132,9.311,40.063,40.063,0,0,0-5.8,6.733l-.538.776.584.38.585.38.584.38.584.38.5-.72A36.7,36.7,0,0,1,253.378,7.253a36.663,36.663,0,0,1,8.5-3.331,37.127,37.127,0,0,1,9.065-1.135h.018A36.83,36.83,0,0,1,307.776,39.6v.018a36.827,36.827,0,0,1-36.814,36.813h-.018A36.829,36.829,0,0,1,234.13,39.618c0-.006,0-.011,0-.018a37.383,37.383,0,0,1,.241-4.225l.11-.871-.691-.1-.69-.1-.691-.1-.69-.1q-.118.936-.118.936a40.278,40.278,0,0,0-.259,4.542c0,.006,0,.012,0,.019a39.616,39.616,0,0,0,39.6,39.6h.019a39.614,39.614,0,0,0,39.6-39.6c0-.006,0-.013,0-.019A39.616,39.616,0,0,0,270.963,0Z" transform="translate(-107.945)"/>
+          <path d="M231.975,63.217l.039-.312a1.394,1.394,0,0,1,2.766.349l0,.034-.037.29Z" transform="translate(-108.241 -28.783)"/>
+          <path d="M232.015,62.905l-.039.312,2.764.361.037-.291,0-.034a1.393,1.393,0,0,0-1.208-1.557,1.324,1.324,0,0,0-.177-.011,1.394,1.394,0,0,0-1.381,1.219" transform="translate(-108.241 -28.783)"/>
+          <path d="M238.534,47.76a1.471,1.471,0,1,1-1.384-1.553,1.471,1.471,0,0,1,1.384,1.553" transform="translate(-109.93 -21.559)"/>
+          <path d="M236.049,46.349a.309.309,0,0,0-.018.618.242.242,0,0,0,.223-.077.307.307,0,0,0,.1-.213h0a.3.3,0,0,0-.077-.223.3.3,0,0,0-.213-.1h-.018m0,2.942c-.052,0-.1,0-.156,0a2.616,2.616,0,1,1,.156,0" transform="translate(-108.914 -20.543)"/>
+        </svg>
+      </button>
     </section>
 
     <script src="./widget/widget.js"></script>
