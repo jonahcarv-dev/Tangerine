@@ -107,7 +107,11 @@
 	/* ── Message helpers ───────────────────────────────── */
 	function linkify(text) {
 		var escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-		return escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+		return escaped.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
+			var clean = url.replace(/[.,;:!?)]+$/, '');
+			var trailing = url.slice(clean.length);
+			return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>' + trailing;
+		});
 	}
 
 	function appendMessage(text, role) {
