@@ -205,6 +205,16 @@
 	color: var(--tw-navy);
 }
 
+.message.bot a {
+	color: var(--tw-orange-hover);
+	text-decoration: underline;
+	word-break: break-all;
+}
+
+.message.bot a:hover {
+	color: var(--tw-orange);
+}
+
 /* ── Chat Form ───────────────────────────────────────── */
 
 .chat-form {

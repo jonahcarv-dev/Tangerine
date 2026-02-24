@@ -105,10 +105,19 @@
 	];
 
 	/* ── Message helpers ───────────────────────────────── */
+	function linkify(text) {
+		var escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+		return escaped.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
+	}
+
 	function appendMessage(text, role) {
 		var item = document.createElement('div');
 		item.className = 'message ' + role;
-		item.textContent = text;
+		if (role === 'bot') {
+			item.innerHTML = linkify(text);
+		} else {
+			item.textContent = text;
+		}
 		messages.appendChild(item);
 		messages.scrollTop = messages.scrollHeight;
 
@@ -275,7 +284,11 @@
 		convo.messages.forEach(function (msg) {
 			var item = document.createElement('div');
 			item.className = 'message ' + msg.role;
-			item.textContent = msg.text;
+			if (msg.role === 'bot') {
+				item.innerHTML = linkify(msg.text);
+			} else {
+				item.textContent = msg.text;
+			}
 			messages.appendChild(item);
 		});
 		messages.scrollTop = messages.scrollHeight;
