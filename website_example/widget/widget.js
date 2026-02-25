@@ -433,10 +433,18 @@
 	if (window.visualViewport) {
 		window.visualViewport.addEventListener('resize', function () {
 			if (!panel.hasAttribute('hidden')) {
-				var keyboardHeight = window.innerHeight - window.visualViewport.height;
-				widgetRoot.style.paddingBottom = keyboardHeight > 0
-					? keyboardHeight + 'px'
-					: '';
+				var vvh = window.visualViewport.height;
+				var keyboardOpen = window.innerHeight - vvh > 100;
+				if (keyboardOpen) {
+					widgetRoot.style.height = vvh + 'px';
+					widgetRoot.style.top = window.visualViewport.offsetTop + 'px';
+					widgetRoot.style.bottom = 'auto';
+					messages.scrollTop = messages.scrollHeight;
+				} else {
+					widgetRoot.style.height = '';
+					widgetRoot.style.top = '';
+					widgetRoot.style.bottom = '';
+				}
 			}
 		});
 	}
