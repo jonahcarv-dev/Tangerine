@@ -2,6 +2,8 @@
 .env
 .env.local
 .env.*.local
+.mcp.json
+.claude/settings.json
 secrets.json
 credentials
 credentials.json
@@ -9,6 +11,9 @@ credentials.json
 *.pem
 *.p12
 *.jks
+
+# Client configuration
+website_example/config.js
 
 # Ignore OS and editor files
 .DS_Store

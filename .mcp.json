@@ -7,8 +7,8 @@
         "MCP_MODE": "stdio",
         "LOG_LEVEL": "error",
         "DISABLE_CONSOLE_OUTPUT": "true",
-        "N8N_API_URL": "https://n8n.srv971592.hstgr.cloud",
-        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2MDM2NzRiNi1lMjI5LTQyMzgtOGI4YS0zZDIwZWZkYTNjYjMiLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwianRpIjoiMGQxZDM1NTktNjk5ZS00MzY4LWFkNTQtMzM5YmFlNGE2MTExIiwiaWF0IjoxNzcxNTY4MjgzfQ.DhmmM5Af3H5r1AIQJuCBLEisuJGqei7fm8uLwddTxu8"
+        "N8N_API_URL": "${N8N_API_URL}",
+        "N8N_API_KEY": "${N8N_API_KEY}"
       }
     }
   }
