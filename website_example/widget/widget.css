@@ -73,8 +73,8 @@
 .chat-toggle {
 	border: 0;
 	border-radius: 50%;
-	width: 56px;
-	height: 56px;
+	width: 70px;
+	height: 70px;
 	padding: 0;
 	background: var(--tw-orange);
 	color: var(--tw-white);
@@ -92,16 +92,16 @@
 }
 
 .chat-toggle svg {
-	width: 30px;
-	height: 30px;
+	width: 40px;
+	height: 40px;
 }
 
 /* ── Chat Panel ──────────────────────────────────────── */
 
 .chat-panel {
-	width: min(360px, calc(100vw - 2rem));
-	height: 500px;
-	margin-bottom: 0.65rem;
+	width: min(450px, calc(100vw - 2rem));
+	height: 600px;
+	margin-bottom: 0.85rem;
 	background: var(--tw-white);
 	border: 1px solid #d1d5db;
 	border-radius: 12px;
