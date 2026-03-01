@@ -1,6 +1,6 @@
 .chat-widget {
-	--tw-orange: #f68c48;
-	--tw-orange-hover: #e57a35;
+	--tw-orange: #c95d1c;
+	--tw-orange-hover: #b24d11;
 	--tw-navy: #19224C;
 	--tw-lavender: #DEE3FF;
 	--tw-gray: #B2B5BE;
@@ -76,7 +76,7 @@
 	width: 70px;
 	height: 70px;
 	padding: 0;
-	background: var(--tw-orange);
+	background: linear-gradient(135deg, #f5a55f 0%, #b84a0f 100%);
 	color: var(--tw-white);
 	cursor: pointer;
 	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
@@ -87,7 +87,7 @@
 }
 
 .chat-toggle:hover {
-	background: var(--tw-orange-hover);
+	background: linear-gradient(135deg, #ef9d55 0%, #ad450d 100%);
 	transform: scale(1.05);
 }
 
