@@ -1,6 +1,6 @@
 .chat-widget {
-	--tw-orange: #f68c48;
-	--tw-orange-hover: #e57a35;
+	--tw-orange: #c95d1c;
+	--tw-orange-hover: #b24d11;
 	--tw-navy: #19224C;
 	--tw-lavender: #DEE3FF;
 	--tw-gray: #B2B5BE;
@@ -76,7 +76,7 @@
 	width: 70px;
 	height: 70px;
 	padding: 0;
-	background: var(--tw-orange);
+	background: linear-gradient(135deg, #f6b06f 0%, #dd7a38 35%, #c35c18 68%, #b84a0f 100%);
 	color: var(--tw-white);
 	cursor: pointer;
 	box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
@@ -87,8 +87,27 @@
 }
 
 .chat-toggle:hover {
-	background: var(--tw-orange-hover);
+	background: linear-gradient(135deg, #f0a45e 0%, #d76d2b 35%, #b94f12 68%, #ad450d 100%);
 	transform: scale(1.05);
+}
+
+.chat-toggle.chat-toggle-pulse {
+	animation: chatTogglePulse 1s ease-out 5;
+}
+
+@keyframes chatTogglePulse {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18), 0 0 0 0 rgba(201, 93, 28, 0.38);
+	}
+	70% {
+		transform: scale(1.04);
+		box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2), 0 0 0 16px rgba(201, 93, 28, 0);
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18), 0 0 0 0 rgba(201, 93, 28, 0);
+	}
 }
 
 .chat-toggle svg {
@@ -124,7 +143,7 @@
 /* ── Chat Header ─────────────────────────────────────── */
 
 .chat-header {
-	padding: 0.7rem 0.85rem;
+	padding: 0.9rem 1rem;
 	background: var(--tw-navy);
 	color: var(--tw-white);
 	font-weight: 600;
@@ -135,7 +154,7 @@
 }
 
 .chat-header-logo {
-	height: 24px;
+	height: 32px;
 	width: auto;
 }
 
