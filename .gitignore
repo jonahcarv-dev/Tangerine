@@ -1,2 +1,31 @@
+﻿# Ignore environment and secret files
+.env
+.env.local
+.env.*.local
+secrets.json
+credentials
+credentials.json
+*.key
+*.pem
+*.p12
+*.jks
+
+# Ignore OS and editor files
 .DS_Store
-.Rhistory
+Thumbs.db
+.vscode/
+.idea/
+
+# Dependencies
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
