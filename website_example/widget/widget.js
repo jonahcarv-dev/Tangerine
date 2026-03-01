@@ -31,6 +31,8 @@
 		'<line x1="12" y1="4" x2="4" y2="12"/></svg>';
 
 	const WELCOME_MESSAGE = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const TOGGLE_PULSE_CLASS = 'chat-toggle-pulse';
+	let togglePulseStopped = false;
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -200,6 +202,31 @@
 		});
 	}
 
+	function stopTogglePulse() {
+		if (togglePulseStopped) return;
+		togglePulseStopped = true;
+		toggleButton.classList.remove(TOGGLE_PULSE_CLASS);
+		toggleButton.removeEventListener('animationend', onTogglePulseAnimationEnd);
+		toggleButton.removeEventListener('pointerdown', stopTogglePulse);
+		toggleButton.removeEventListener('keydown', stopTogglePulse);
+		toggleButton.removeEventListener('touchstart', stopTogglePulse);
+	}
+
+	function onTogglePulseAnimationEnd(event) {
+		if (event.animationName !== 'chatTogglePulse') return;
+		stopTogglePulse();
+	}
+
+	function startTogglePulse() {
+		toggleButton.classList.add(TOGGLE_PULSE_CLASS);
+		toggleButton.addEventListener('animationend', onTogglePulseAnimationEnd);
+		toggleButton.addEventListener('pointerdown', stopTogglePulse);
+		toggleButton.addEventListener('keydown', stopTogglePulse);
+		toggleButton.addEventListener('touchstart', stopTogglePulse);
+	}
+
+	startTogglePulse();
+
 	/* ── View switching ────────────────────────────────── */
 	function switchToView(view) {
 		currentView = view;
@@ -302,6 +329,7 @@
 
 	/* ── Toggle open/close ─────────────────────────────── */
 	toggleButton.addEventListener('click', function () {
+		stopTogglePulse();
 		var isOpen = !panel.hasAttribute('hidden');
 		if (isOpen) {
 			panel.setAttribute('hidden', '');
