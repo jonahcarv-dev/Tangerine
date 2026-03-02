@@ -109,11 +109,21 @@
 	/* ── Message helpers ───────────────────────────────── */
 	function linkify(text) {
 		var escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-		return escaped.replace(/(https?:\/\/[^\s<]+)/g, function (url) {
+		// Markdown links: [text](url)
+		escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, function (_m, linkText, url) {
+			return '<a href="' + url + '" target="_blank" rel="noopener noreferrer">' + linkText + '</a>';
+		});
+		// Bold: **text**
+		escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+		// Bare URLs not already inside an <a> tag
+		escaped = escaped.replace(/(^|[^"'>])(https?:\/\/[^\s<]+)/g, function (_m, prefix, url) {
 			var clean = url.replace(/[.,;:!?)]+$/, '');
 			var trailing = url.slice(clean.length);
-			return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>' + trailing;
+			return prefix + '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>' + trailing;
 		});
+		// Line breaks
+		escaped = escaped.replace(/\n/g, '<br>');
+		return escaped;
 	}
 
 	function appendMessage(text, role) {
