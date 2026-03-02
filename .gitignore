@@ -13,7 +13,7 @@ credentials.json
 *.jks
 
 # Client configuration
-website_example/config.js
+docs/config.js
 
 # Ignore OS and editor files
 .DS_Store
