@@ -13,7 +13,7 @@
 	const conversationsList = document.getElementById('chatConversations');
 	const faqContainer = document.getElementById('chatFaq');
 	const faqTrack = document.getElementById('chatFaqTrack');
-	const webhookUrl = window.TANGERINE_CONFIG?.n8nWebhookUrl || '';
+	const webhookUrl = window.TANGERINE_CONFIG?.n8nWebhookUrl || 'https://n8n.srv971592.hstgr.cloud/webhook/tangerine-test';
 
 	if (!toggleButton || !panel || !form || !input || !messages) {
 		return;
