@@ -13,7 +13,13 @@
 	const conversationsList = document.getElementById('chatConversations');
 	const faqContainer = document.getElementById('chatFaq');
 	const faqTrack = document.getElementById('chatFaqTrack');
-	const webhookUrl = window.TANGERINE_CONFIG?.n8nWebhookUrl || 'https://n8n.srv971592.hstgr.cloud/webhook/tangerine-test';
+	const webhookUrl = (window.TANGERINE_CONFIG && window.TANGERINE_CONFIG.n8nWebhookUrl)
+		? String(window.TANGERINE_CONFIG.n8nWebhookUrl).trim()
+		: '';
+
+	if (!webhookUrl) {
+		console.warn('Tangerine widget: n8nWebhookUrl is missing in config.js. Falling back to local reply mode.');
+	}
 
 	if (!toggleButton || !panel || !form || !input || !messages) {
 		return;
