@@ -42,7 +42,7 @@
 	const BUSINESS_BOT_GREETING = "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
 	const ENTRY_PROMPT_OPTIONS = [
 		{ value: 'business', label: 'Business' },
-		{ value: 'self', label: 'Yourself' }
+		{ value: 'self', label: 'Myself' }
 	];
 	const TOGGLE_PULSE_CLASS = 'chat-toggle-pulse';
 	let togglePulseStopped = false;
@@ -50,6 +50,15 @@
 	let businessNamePending = false;
 	let sessionUserType = null;
 	let sessionCompanyName = null;
+	const INPUT_PLACEHOLDER_DEFAULT = 'Type a message...';
+	const INPUT_PLACEHOLDER_ONBOARDING = 'Choose Business or Myself to start';
+	const INPUT_PLACEHOLDER_BUSINESS_PENDING = 'Enter business name and click Continue';
+
+	function isOnboardingComplete() {
+		if (sessionUserType === 'self') return true;
+		if (sessionUserType === 'business' && !!sessionCompanyName) return true;
+		return false;
+	}
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -163,12 +172,20 @@
 	function setChatInputEnabled(enabled) {
 		input.disabled = !enabled;
 		if (sendButton) sendButton.disabled = !enabled;
+		if (enabled) {
+			input.placeholder = INPUT_PLACEHOLDER_DEFAULT;
+		} else {
+			input.placeholder = businessNamePending
+				? INPUT_PLACEHOLDER_BUSINESS_PENDING
+				: INPUT_PLACEHOLDER_ONBOARDING;
+		}
 	}
 
 	function showBusinessNamePrompt() {
 		if (businessNamePending) return;
 		businessNamePending = true;
 		setChatInputEnabled(false);
+		hideFaq();
 		appendMessage('Please enter your business name to continue.', 'bot');
 
 		var entry = document.createElement('div');
@@ -198,6 +215,7 @@
 			sessionCompanyName = businessName;
 			saveSessionMetadata('business', businessName);
 			setChatInputEnabled(true);
+			showFaq();
 			input.focus();
 		}
 
@@ -264,6 +282,7 @@
 					sessionCompanyName = null;
 					saveSessionMetadata('self', null);
 					setChatInputEnabled(true);
+					showFaq();
 					input.focus();
 				}
 			});
@@ -278,6 +297,8 @@
 
 	function ensureIntroPrompt() {
 		if (introPromptShown || currentMessages.length > 0) return;
+		setChatInputEnabled(false);
+		hideFaq();
 		messages.innerHTML = '';
 		addEntryPromptMessage();
 	}
@@ -495,7 +516,11 @@
 		});
 		messages.scrollTop = messages.scrollHeight;
 		businessNamePending = false;
-		setChatInputEnabled(true);
+		if (!isOnboardingComplete() && convo.messages.length > 0) {
+			sessionUserType = 'self';
+			sessionCompanyName = null;
+		}
+		setChatInputEnabled(isOnboardingComplete());
 
 		switchToView('chat');
 	}
@@ -519,7 +544,7 @@
 		hideTooltip();
 		switchToView('chat');
 		ensureIntroPrompt();
-		input.focus();
+		if (!input.disabled) input.focus();
 	});
 
 	/* ── New conversation ──────────────────────────────── */
@@ -532,14 +557,17 @@
 			currentSessionId = generateSessionId();
 			currentMessages = [];
 			businessNamePending = false;
-			setChatInputEnabled(true);
+			sessionUserType = null;
+			sessionCompanyName = null;
+			setChatInputEnabled(false);
+			hideFaq();
 
 			messages.innerHTML = '';
 			introPromptShown = false;
 			ensureIntroPrompt();
 
 			switchToView('chat');
-			input.focus();
+			if (!input.disabled) input.focus();
 		});
 	}
 
@@ -580,12 +608,18 @@
 	}
 
 	function sendFaqQuestion(question) {
+		if (!isOnboardingComplete() || input.disabled || businessNamePending) return;
 		input.value = question;
 		form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 	}
 
 	function showFaq() {
-		if (faqContainer) faqContainer.removeAttribute('hidden');
+		if (!faqContainer) return;
+		if (isOnboardingComplete()) {
+			faqContainer.removeAttribute('hidden');
+		} else {
+			faqContainer.setAttribute('hidden', '');
+		}
 	}
 
 	function hideFaq() {
@@ -593,11 +627,13 @@
 	}
 
 	buildFaqCarousel();
+	hideFaq();
+	setChatInputEnabled(false);
 
 	/* ── Form submit ───────────────────────────────────── */
 	form.addEventListener('submit', async function (event) {
 		event.preventDefault();
-		if (input.disabled || businessNamePending) return;
+		if (!isOnboardingComplete() || input.disabled || businessNamePending) return;
 		var userText = input.value.trim();
 		if (!userText) return;
 
