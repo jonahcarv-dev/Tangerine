@@ -4,12 +4,17 @@
   var results = document.getElementById('results');
   var accessToken = document.getElementById('accessToken');
   var companyFilter = document.getElementById('companyFilter');
-  var dateFilter = document.getElementById('dateFilter');
+  var userTypeFilter = document.getElementById('userTypeFilter');
+  var datePresetFilter = document.getElementById('datePresetFilter');
+  var customDateRange = document.getElementById('customDateRange');
+  var dateStartFilter = document.getElementById('dateStartFilter');
+  var dateEndFilter = document.getElementById('dateEndFilter');
   var clearBtn = document.getElementById('clearBtn');
   var refreshBtn = document.getElementById('refreshBtn');
 
   var rows = [];
   var SESSION_TOKEN_KEY = 'tangerine_reporting_access_token';
+  var autoRefreshTimer = null;
 
   function setStatus(text) {
     statusText.textContent = text;
@@ -324,12 +329,94 @@
 
   function applyFilters() {
     var companyTerm = companyFilter.value.trim().toLowerCase();
-    var dateTerm = dateFilter.value;
+    var selectedUserType = userTypeFilter.value;
+    var datePreset = datePresetFilter.value;
+    var now = new Date();
+
+    function startOfDay(d) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+    }
+
+    function endOfDay(d) {
+      return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+    }
+
+    function shiftDays(base, days) {
+      var next = new Date(base);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function shiftMonths(base, months) {
+      var next = new Date(base);
+      next.setMonth(next.getMonth() + months);
+      return next;
+    }
+
+    function parseDateInput(value) {
+      if (!value) return null;
+      var parts = value.split('-');
+      if (parts.length !== 3) return null;
+
+      var year = Number(parts[0]);
+      var month = Number(parts[1]);
+      var day = Number(parts[2]);
+
+      if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+
+      return new Date(year, month - 1, day);
+    }
+
+    function computeDateBounds() {
+      if (datePreset === 'today') {
+        return { start: startOfDay(now), end: endOfDay(now) };
+      }
+      if (datePreset === 'past_week') {
+        return { start: startOfDay(shiftDays(now, -6)), end: endOfDay(now) };
+      }
+      if (datePreset === 'past_month') {
+        return { start: startOfDay(shiftMonths(now, -1)), end: endOfDay(now) };
+      }
+      if (datePreset === 'past_3_months') {
+        return { start: startOfDay(shiftMonths(now, -3)), end: endOfDay(now) };
+      }
+      if (datePreset === 'custom') {
+        var startDate = parseDateInput(dateStartFilter.value);
+        var endDate = parseDateInput(dateEndFilter.value);
+        var start = startDate ? startOfDay(startDate) : null;
+        var end = endDate ? endOfDay(endDate) : null;
+        if (!start || !end) return { incomplete: true };
+        return { start: start, end: end };
+      }
+      return null;
+    }
+
+    var dateBounds = computeDateBounds();
 
     var filtered = rows.filter(function (row) {
       var companyMatch = !companyTerm || (row.company && row.company.toLowerCase().includes(companyTerm));
-      var dateMatch = !dateTerm || row.dateKey === dateTerm;
-      return companyMatch && dateMatch;
+
+      var normalizedType = String(row.userType || '').toLowerCase();
+      var isCompanyConversation = normalizedType === 'business';
+      var isIndividualConversation = normalizedType === 'individual' || (!normalizedType && !row.company);
+
+      var userTypeMatch = true;
+      if (selectedUserType === 'company') {
+        userTypeMatch = isCompanyConversation;
+      } else if (selectedUserType === 'individual') {
+        userTypeMatch = isIndividualConversation;
+      }
+
+      var dateMatch = true;
+      if (dateBounds) {
+        if (dateBounds.incomplete) {
+          dateMatch = false;
+        } else {
+          dateMatch = !!row.createdAt && row.createdAt >= dateBounds.start && row.createdAt <= dateBounds.end;
+        }
+      }
+
+      return companyMatch && userTypeMatch && dateMatch;
     });
 
     renderRows(filtered);
@@ -400,6 +487,20 @@
     }
   }
 
+  function scheduleAutoRefresh() {
+    if (autoRefreshTimer) {
+      window.clearTimeout(autoRefreshTimer);
+    }
+
+    autoRefreshTimer = window.setTimeout(function () {
+      if (accessToken.value.trim()) {
+        loadData();
+      } else {
+        applyFilters();
+      }
+    }, 220);
+  }
+
   accessToken.value = getStoredToken();
   accessToken.addEventListener('keydown', function (event) {
     if (event.key === 'Enter') {
@@ -408,14 +509,39 @@
     }
   });
 
+  function updateCustomDateRangeState() {
+    var isCustom = datePresetFilter.value === 'custom';
+
+    dateStartFilter.disabled = !isCustom;
+    dateEndFilter.disabled = !isCustom;
+
+    if (isCustom) {
+      customDateRange.classList.remove('is-disabled');
+    } else {
+      customDateRange.classList.add('is-disabled');
+    }
+  }
+
   companyFilter.addEventListener('input', applyFilters);
-  dateFilter.addEventListener('change', applyFilters);
+  userTypeFilter.addEventListener('change', applyFilters);
+  datePresetFilter.addEventListener('change', function () {
+    updateCustomDateRangeState();
+    scheduleAutoRefresh();
+  });
+  dateStartFilter.addEventListener('change', scheduleAutoRefresh);
+  dateEndFilter.addEventListener('change', scheduleAutoRefresh);
   clearBtn.addEventListener('click', function () {
     companyFilter.value = '';
-    dateFilter.value = '';
+    userTypeFilter.value = 'all';
+    datePresetFilter.value = 'all';
+    dateStartFilter.value = '';
+    dateEndFilter.value = '';
+    updateCustomDateRangeState();
     applyFilters();
   });
   refreshBtn.addEventListener('click', loadData);
+
+  updateCustomDateRangeState();
 
   setStatus('Enter your dashboard access token to load chat histories.');
   renderEmpty('This page now uses a secure reporting endpoint instead of direct browser access to Supabase.');
