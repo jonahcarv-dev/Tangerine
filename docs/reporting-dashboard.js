@@ -398,7 +398,7 @@
 
       var normalizedType = String(row.userType || '').toLowerCase();
       var isCompanyConversation = normalizedType === 'business';
-      var isIndividualConversation = normalizedType === 'individual' || (!normalizedType && !row.company);
+      var isIndividualConversation = normalizedType === 'individual' || normalizedType === 'self' || (!normalizedType && !row.company);
 
       var userTypeMatch = true;
       if (selectedUserType === 'company') {
