@@ -225,6 +225,45 @@
 	color: var(--tw-navy);
 }
 
+.message.bot.message-intro {
+	max-width: 92%;
+}
+
+.message-intro-options {
+	display: flex;
+	gap: 0.55rem;
+	align-self: flex-start;
+}
+
+.message-intro-option {
+	min-width: 44px;
+	height: 44px;
+	padding: 0 0.95rem;
+	border-radius: 999px;
+	border: 1px solid #cfd4ff;
+	background: #f3f5ff;
+	color: var(--tw-navy);
+	cursor: pointer;
+	transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+	font-size: 0.82rem;
+	line-height: 1;
+	font-weight: 600;
+	font-family: var(--tw-font-sans);
+}
+
+.message-intro-option:hover {
+	background: #e9ecff;
+	border-color: #aab3ff;
+	transform: translateY(-1px);
+}
+
+.message-intro-options[data-selected='business'] .message-intro-option[data-value='business'],
+.message-intro-options[data-selected='self'] .message-intro-option[data-value='self'] {
+	border-color: var(--tw-orange);
+	background: #ffe9df;
+	box-shadow: 0 0 0 2px rgba(244, 118, 79, 0.2);
+}
+
 .message.bot.typing {
 	display: flex;
 	gap: 4px;

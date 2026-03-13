@@ -36,9 +36,15 @@
 		'<line x1="4" y1="4" x2="12" y2="12"/>' +
 		'<line x1="12" y1="4" x2="4" y2="12"/></svg>';
 
-	const WELCOME_MESSAGE = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
+	const DEFAULT_BOT_GREETING = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const ENTRY_PROMPT_OPTIONS = [
+		{ value: 'business', label: 'Business' },
+		{ value: 'self', label: 'Yourself' }
+	];
 	const TOGGLE_PULSE_CLASS = 'chat-toggle-pulse';
 	let togglePulseStopped = false;
+	let introPromptShown = false;
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -147,6 +153,53 @@
 			currentMessages.push({ role: role, text: text });
 			ConversationStore.save(currentSessionId, currentMessages);
 		}
+	}
+
+	function addEntryPromptMessage() {
+		var prompt = document.createElement('div');
+		prompt.className = 'message bot message-intro';
+		prompt.textContent = WELCOME_MESSAGE;
+
+		var options = document.createElement('div');
+		options.className = 'message-intro-options';
+
+		ENTRY_PROMPT_OPTIONS.forEach(function (option, index) {
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'message-intro-option';
+			button.setAttribute('aria-label', index === 0 ? 'Business option' : 'Self option');
+			button.dataset.value = option.value;
+			button.textContent = option.label;
+			button.addEventListener('click', function () {
+				options.setAttribute('data-selected', option.value);
+				if (option.value === 'self') {
+					if (options.getAttribute('data-flow-complete') === '1') return;
+					options.setAttribute('data-flow-complete', '1');
+
+					var allButtons = options.querySelectorAll('.message-intro-option');
+					allButtons.forEach(function (btn) {
+						if (btn.dataset.value !== 'self') {
+							btn.remove();
+						}
+					});
+
+					appendMessage(DEFAULT_BOT_GREETING, 'bot');
+					input.focus();
+				}
+			});
+			options.appendChild(button);
+		});
+
+		messages.appendChild(prompt);
+		messages.appendChild(options);
+		messages.scrollTop = messages.scrollHeight;
+		introPromptShown = true;
+	}
+
+	function ensureIntroPrompt() {
+		if (introPromptShown || currentMessages.length > 0) return;
+		messages.innerHTML = '';
+		addEntryPromptMessage();
 	}
 
 	function getBotReply(userText) {
@@ -361,6 +414,7 @@
 		toggleButton.setAttribute('aria-label', 'Close chat');
 		hideTooltip();
 		switchToView('chat');
+		ensureIntroPrompt();
 		input.focus();
 	});
 
@@ -375,10 +429,8 @@
 			currentMessages = [];
 
 			messages.innerHTML = '';
-			var welcome = document.createElement('div');
-			welcome.className = 'message bot';
-			welcome.textContent = WELCOME_MESSAGE;
-			messages.appendChild(welcome);
+			introPromptShown = false;
+			ensureIntroPrompt();
 
 			switchToView('chat');
 			input.focus();
