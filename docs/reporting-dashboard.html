@@ -24,6 +24,11 @@
     </header>
 
     <section class="toolbar" aria-label="Report filters">
+      <label class="field field-token">
+        <span>Dashboard Access Token</span>
+        <input id="accessToken" type="password" placeholder="Enter access token" autocomplete="off" />
+      </label>
+
       <label class="field">
         <span>Company Name</span>
         <input id="companyFilter" type="search" placeholder="Search company" autocomplete="off" />
@@ -47,8 +52,6 @@
 
     <section id="results" class="results" aria-label="Chat history results"></section>
   </main>
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="reporting-dashboard.js"></script>
 </body>

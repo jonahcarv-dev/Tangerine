@@ -9,12 +9,9 @@ window.TANGERINE_CONFIG = {
   // n8n webhook URL for the chat widget
   n8nWebhookUrl: 'https://n8n.your-instance.com/webhook/tangerine-test',
 
-  // Supabase URL for reporting dashboard (browser-safe, public project URL)
-  supabaseUrl: 'https://your-project-ref.supabase.co',
+  // Secure reporting endpoint URL (for example, your Supabase Edge Function URL)
+  reportingApiUrl: 'https://your-project-ref.supabase.co/functions/v1/reporting-dashboard',
 
-  // Supabase ANON key only (never use service_role key in browser code)
-  supabaseAnonKey: 'your-anon-key',
-
-  // Optional: override table name if needed
-  chatHistoriesTable: 'Chat histories'
+  // Optional: row limit sent to the reporting endpoint (0 = fetch all rows)
+  reportingLimit: 0
 };

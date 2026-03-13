@@ -2,13 +2,14 @@
   var statusText = document.getElementById('statusText');
   var resultCount = document.getElementById('resultCount');
   var results = document.getElementById('results');
+  var accessToken = document.getElementById('accessToken');
   var companyFilter = document.getElementById('companyFilter');
   var dateFilter = document.getElementById('dateFilter');
   var clearBtn = document.getElementById('clearBtn');
   var refreshBtn = document.getElementById('refreshBtn');
 
   var rows = [];
-  var client = null;
+  var SESSION_TOKEN_KEY = 'tangerine_reporting_access_token';
 
   function setStatus(text) {
     statusText.textContent = text;
@@ -16,6 +17,26 @@
 
   function setCount(text) {
     resultCount.textContent = text;
+  }
+
+  function getStoredToken() {
+    try {
+      return sessionStorage.getItem(SESSION_TOKEN_KEY) || '';
+    } catch (_error) {
+      return '';
+    }
+  }
+
+  function storeToken(value) {
+    try {
+      if (value) {
+        sessionStorage.setItem(SESSION_TOKEN_KEY, value);
+      } else {
+        sessionStorage.removeItem(SESSION_TOKEN_KEY);
+      }
+    } catch (_error) {
+      // Ignore storage failures.
+    }
   }
 
   function safeParseJson(value) {
@@ -50,18 +71,16 @@
       row.business_name,
       row.organization,
       metadata && metadata.company,
-      metadata && metadata.business
+      metadata && metadata.business,
+      row.session_id,
+      row.sessionId
     );
   }
 
   function normalizeRole(role) {
     var raw = (role || '').toString().trim().toLowerCase();
-    if (raw === 'assistant') return 'bot';
-    if (raw === 'ai') return 'bot';
-    if (raw === 'human') return 'user';
-    if (raw === 'client') return 'user';
-    if (raw === 'bot') return 'bot';
-    if (raw === 'user') return 'user';
+    if (raw === 'assistant' || raw === 'ai' || raw === 'bot') return 'bot';
+    if (raw === 'human' || raw === 'client' || raw === 'user') return 'user';
     return 'system';
   }
 
@@ -69,22 +88,27 @@
     if (!Array.isArray(messages)) return [];
     return messages
       .map(function (msg) {
-        if (msg == null) return null;
-        if (typeof msg === 'string') {
-          return { role: 'system', text: msg };
-        }
-        if (typeof msg === 'object') {
-          var text = pickFirstNonEmpty(msg.text, msg.content, msg.message, msg.body, msg.output);
-          if (!text) return null;
-          return { role: normalizeRole(msg.role), text: text };
-        }
-        return null;
+        return normalizeSingleMessage(msg);
       })
       .filter(Boolean);
   }
 
+  function normalizeSingleMessage(msg) {
+    if (msg == null) return null;
+    if (typeof msg === 'string') return { role: 'system', text: msg };
+    if (typeof msg !== 'object') return null;
+
+    var text = pickFirstNonEmpty(msg.text, msg.content, msg.message, msg.body, msg.output);
+    if (!text) return null;
+
+    return {
+      role: normalizeRole(msg.role || msg.type || msg.sender),
+      text: text
+    };
+  }
+
   function detectMessages(row) {
-    var candidates = [row.chat_history, row.messages, row.history, row.transcript, row.conversation, row.payload, row.data];
+    var candidates = [row.message, row.chat_history, row.messages, row.history, row.transcript, row.conversation, row.payload, row.data];
 
     for (var i = 0; i < candidates.length; i++) {
       var candidate = candidates[i];
@@ -96,9 +120,12 @@
       }
 
       if (typeof candidate === 'object') {
+        var single = normalizeSingleMessage(candidate);
+        if (single) return [single];
+
         if (Array.isArray(candidate.messages)) {
-          var nested = normalizeMessagesFromArray(candidate.messages);
-          if (nested.length > 0) return nested;
+          var nestedMessages = normalizeMessagesFromArray(candidate.messages);
+          if (nestedMessages.length > 0) return nestedMessages;
         }
         if (Array.isArray(candidate.chat_history)) {
           var nestedHistory = normalizeMessagesFromArray(candidate.chat_history);
@@ -109,17 +136,17 @@
       if (typeof candidate === 'string') {
         var parsed = safeParseJson(candidate);
         if (Array.isArray(parsed)) {
-          var parsedArr = normalizeMessagesFromArray(parsed);
-          if (parsedArr.length > 0) return parsedArr;
+          var parsedArray = normalizeMessagesFromArray(parsed);
+          if (parsedArray.length > 0) return parsedArray;
         }
         if (parsed && typeof parsed === 'object') {
           if (Array.isArray(parsed.messages)) {
-            var parsedNested = normalizeMessagesFromArray(parsed.messages);
-            if (parsedNested.length > 0) return parsedNested;
+            var parsedMessages = normalizeMessagesFromArray(parsed.messages);
+            if (parsedMessages.length > 0) return parsedMessages;
           }
           if (Array.isArray(parsed.chat_history)) {
-            var parsedNestedHistory = normalizeMessagesFromArray(parsed.chat_history);
-            if (parsedNestedHistory.length > 0) return parsedNestedHistory;
+            var parsedHistory = normalizeMessagesFromArray(parsed.chat_history);
+            if (parsedHistory.length > 0) return parsedHistory;
           }
         }
       }
@@ -132,7 +159,6 @@
   function normalizeRow(row, index) {
     var company = detectCompany(row);
     var createdAt = normalizeDate(row.created_at || row.timestamp || row.createdAt || row.date || row.inserted_at || row.updated_at);
-    var messages = detectMessages(row);
 
     return {
       id: row.id || row.session_id || row.sessionId || index + 1,
@@ -140,9 +166,59 @@
       createdAt: createdAt,
       createdAtLabel: createdAt ? createdAt.toLocaleString() : 'Unknown date',
       dateKey: createdAt ? createdAt.toISOString().slice(0, 10) : '',
-      messages: messages,
-      raw: row
+      messages: detectMessages(row)
     };
+  }
+
+  function buildHistories(rawRows) {
+    var buckets = {};
+
+    rawRows.forEach(function (row, index) {
+      var key = pickFirstNonEmpty(row.session_id, row.sessionId, row.id ? String(row.id) : '', 'row-' + String(index + 1));
+      var rowCompany = detectCompany(row);
+      var rowDate = normalizeDate(row.created_at || row.timestamp || row.createdAt || row.date || row.inserted_at || row.updated_at);
+      var rowMessages = detectMessages(row);
+
+      if (!buckets[key]) {
+        buckets[key] = {
+          id: key,
+          company: rowCompany,
+          createdAt: rowDate,
+          messages: []
+        };
+      }
+
+      if (!buckets[key].company && rowCompany) {
+        buckets[key].company = rowCompany;
+      }
+
+      if (rowDate && (!buckets[key].createdAt || rowDate > buckets[key].createdAt)) {
+        buckets[key].createdAt = rowDate;
+      }
+
+      if (rowMessages.length > 0) {
+        buckets[key].messages = buckets[key].messages.concat(rowMessages);
+      }
+    });
+
+    return Object.keys(buckets)
+      .map(function (key) {
+        var bucket = buckets[key];
+        return {
+          id: bucket.id,
+          company: bucket.company,
+          createdAt: bucket.createdAt,
+          createdAtLabel: bucket.createdAt ? bucket.createdAt.toLocaleString() : 'Unknown date',
+          dateKey: bucket.createdAt ? bucket.createdAt.toISOString().slice(0, 10) : '',
+          messages: bucket.messages
+        };
+      })
+      .sort(function (a, b) {
+        if (a.createdAt && b.createdAt) return b.createdAt - a.createdAt;
+        if (a.createdAt) return -1;
+        if (b.createdAt) return 1;
+        return String(b.id).localeCompare(String(a.id));
+      });
   }
 
   function createEl(tag, className, text) {
@@ -154,8 +230,7 @@
 
   function renderEmpty(text) {
     results.innerHTML = '';
-    var empty = createEl('div', 'empty-state', text);
-    results.appendChild(empty);
+    results.appendChild(createEl('div', 'empty-state', text));
   }
 
   function renderRows(list) {
@@ -169,29 +244,27 @@
     list.forEach(function (row) {
       var card = createEl('article', 'history-card');
       var head = createEl('div', 'history-head');
-
       var left = createEl('div');
+      var right = createEl('div');
+      var body = createEl('div', 'history-body');
+
       left.appendChild(createEl('p', 'history-company', row.company || 'N/A'));
       left.appendChild(createEl('p', 'history-meta', 'Session: ' + String(row.id)));
 
-      var right = createEl('div');
       right.appendChild(createEl('p', 'history-date', row.createdAtLabel));
       right.appendChild(createEl('p', 'history-meta', row.messages.length + ' parsed messages'));
 
-      head.appendChild(left);
-      head.appendChild(right);
-
-      var body = createEl('div', 'history-body');
       if (row.messages.length === 0) {
         body.appendChild(createEl('div', 'message-row system', 'No parseable messages found in this row.'));
       } else {
         row.messages.forEach(function (msg) {
           var role = msg.role === 'user' || msg.role === 'bot' ? msg.role : 'system';
-          var text = '[' + role.toUpperCase() + '] ' + msg.text;
-          body.appendChild(createEl('div', 'message-row ' + role, text));
+          body.appendChild(createEl('div', 'message-row ' + role, '[' + role.toUpperCase() + '] ' + msg.text));
         });
       }
 
+      head.appendChild(left);
+      head.appendChild(right);
       card.appendChild(head);
       card.appendChild(body);
       results.appendChild(card);
@@ -212,76 +285,77 @@
     setCount(filtered.length + ' result' + (filtered.length === 1 ? '' : 's'));
   }
 
-  async function queryChatHistories(tableName) {
-    var query = client.from(tableName).select('*').limit(500);
-
-    var withOrder = await query.order('created_at', { ascending: false });
-    if (!withOrder.error) return withOrder;
-
-    var fallback = await client.from(tableName).select('*').limit(500);
-    return fallback;
-  }
-
   function readConfig() {
     var cfg = window.TANGERINE_CONFIG || {};
+    var parsedLimit = Number(cfg.reportingLimit || 0);
     return {
-      supabaseUrl: cfg.supabaseUrl || (cfg.supabase && cfg.supabase.url) || '',
-      supabaseAnonKey: cfg.supabaseAnonKey || (cfg.supabase && cfg.supabase.anonKey) || '',
-      tableName: cfg.chatHistoriesTable || 'Chat histories'
+      reportingApiUrl: cfg.reportingApiUrl || '',
+      reportingLimit: Number.isFinite(parsedLimit) && parsedLimit > 0 ? parsedLimit : 0
     };
-  }
-
-  function looksLikeServiceRoleKey(key) {
-    return typeof key === 'string' && key.indexOf('service_role') !== -1;
   }
 
   async function loadData() {
     var cfg = readConfig();
+    var token = accessToken.value.trim();
 
-    if (!window.supabase || typeof window.supabase.createClient !== 'function') {
-      setStatus('Supabase client failed to load.');
-      renderEmpty('Could not initialize Supabase client library.');
+    if (!cfg.reportingApiUrl) {
+      setStatus('Missing reportingApiUrl in docs/config.js.');
+      renderEmpty('Add the secure reporting endpoint URL to docs/config.js before using this dashboard.');
+      setCount('0 results');
       return;
     }
 
-    if (!cfg.supabaseUrl || !cfg.supabaseAnonKey) {
-      setStatus('Missing Supabase config in docs/config.js.');
-      renderEmpty('Add supabaseUrl and supabaseAnonKey to docs/config.js before using this dashboard.');
+    if (!token) {
+      setStatus('Access token required.');
+      renderEmpty('Enter the dashboard access token to load chat histories.');
+      setCount('0 results');
       return;
     }
 
-    if (looksLikeServiceRoleKey(cfg.supabaseAnonKey)) {
-      setStatus('Unsafe key detected.');
-      renderEmpty('Do not use a service role key in browser code. Use the Supabase anon key only.');
-      return;
-    }
+    storeToken(token);
 
-    client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false
-      }
-    });
+    var requestUrl = new URL(cfg.reportingApiUrl);
+    if (cfg.reportingLimit > 0) {
+      requestUrl.searchParams.set('limit', String(Math.floor(cfg.reportingLimit)));
+    }
 
     setStatus('Loading chat histories...');
 
     try {
-      var response = await queryChatHistories(cfg.tableName);
-      if (response.error) {
-        throw response.error;
+      var response = await fetch(requestUrl.toString(), {
+        method: 'GET',
+        headers: {
+          'x-dashboard-token': token
+        }
+      });
+
+      var payload = await response.json().catch(function () { return {}; });
+      if (!response.ok) {
+        if (response.status === 401) {
+          storeToken('');
+          throw new Error('Access token was rejected.');
+        }
+        throw new Error(payload.error || 'Request failed.');
       }
 
-      rows = (response.data || []).map(normalizeRow);
-      setStatus('Loaded from table "' + cfg.tableName + '".');
+      rows = buildHistories(Array.isArray(payload.rows) ? payload.rows : []);
+      setStatus('Loaded secure reporting data.');
       applyFilters();
     } catch (error) {
       setStatus('Unable to load chat histories.');
-      renderEmpty('Supabase query failed. Confirm table access and RLS policies for anon read access.');
+      renderEmpty(error && error.message ? error.message : 'Secure reporting request failed.');
       setCount('0 results');
-      console.error('Dashboard query error:', error);
+      console.error('Dashboard API error:', error);
     }
   }
+
+  accessToken.value = getStoredToken();
+  accessToken.addEventListener('keydown', function (event) {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      loadData();
+    }
+  });
 
   companyFilter.addEventListener('input', applyFilters);
   dateFilter.addEventListener('change', applyFilters);
@@ -292,5 +366,7 @@
   });
   refreshBtn.addEventListener('click', loadData);
 
-  loadData();
+  setStatus('Enter your dashboard access token to load chat histories.');
+  renderEmpty('This page now uses a secure reporting endpoint instead of direct browser access to Supabase.');
+  setCount('0 results');
 })();

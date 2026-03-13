@@ -84,12 +84,16 @@ h1 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(220px, 1fr) minmax(180px, 240px) auto;
+  grid-template-columns: minmax(260px, 1.2fr) minmax(220px, 1fr) minmax(180px, 240px) auto;
   gap: 0.7rem;
   border: 1px solid var(--tg-border);
   border-radius: 12px;
   background: #fafbff;
   padding: 0.7rem;
+}
+
+.field-token {
+  min-width: 0;
 }
 
 .field {
