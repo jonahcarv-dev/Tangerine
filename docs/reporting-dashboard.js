@@ -48,6 +48,26 @@
     }
   }
 
+  function cleanMessageText(text) {
+    if (!text || typeof text !== 'string') return '';
+    return text.replace(/\\n/g, '\n').trim();
+  }
+
+  function escapeHtml(text) {
+    return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function linkifyText(text) {
+    var escaped = escapeHtml(text);
+    escaped = escaped.replace(/(https?:\/\/[^\s<]+)/g, function (_m, url) {
+      var clean = url.replace(/[.,;:!?)]+$/, '');
+      var trailing = url.slice(clean.length);
+      return '<a href="' + clean + '" target="_blank" rel="noopener noreferrer">' + clean + '</a>' + trailing;
+    });
+    escaped = escaped.replace(/\n/g, '<br>');
+    return escaped;
+  }
+
   function normalizeDate(value) {
     if (!value) return null;
     var parsed = new Date(value);
@@ -71,9 +91,7 @@
       row.business_name,
       row.organization,
       metadata && metadata.company,
-      metadata && metadata.business,
-      row.session_id,
-      row.sessionId
+      metadata && metadata.business
     );
   }
 
@@ -95,10 +113,10 @@
 
   function normalizeSingleMessage(msg) {
     if (msg == null) return null;
-    if (typeof msg === 'string') return { role: 'system', text: msg };
+    if (typeof msg === 'string') return { role: 'system', text: cleanMessageText(msg) };
     if (typeof msg !== 'object') return null;
 
-    var text = pickFirstNonEmpty(msg.text, msg.content, msg.message, msg.body, msg.output);
+    var text = cleanMessageText(pickFirstNonEmpty(msg.text, msg.content, msg.message, msg.body, msg.output));
     if (!text) return null;
 
     return {
@@ -179,13 +197,20 @@
       var rowDate = normalizeDate(row.created_at || row.timestamp || row.createdAt || row.date || row.inserted_at || row.updated_at);
       var rowMessages = detectMessages(row);
 
+      var rowUserType = row.user_type || row.userType || '';
+
       if (!buckets[key]) {
         buckets[key] = {
           id: key,
           company: rowCompany,
+          userType: rowUserType,
           createdAt: rowDate,
           messages: []
         };
+      }
+
+      if (!buckets[key].userType && rowUserType) {
+        buckets[key].userType = rowUserType;
       }
 
       if (!buckets[key].company && rowCompany) {
@@ -207,6 +232,7 @@
         return {
           id: bucket.id,
           company: bucket.company,
+          userType: bucket.userType || '',
           createdAt: bucket.createdAt,
           createdAtLabel: bucket.createdAt ? bucket.createdAt.toLocaleString() : 'Unknown date',
           dateKey: bucket.createdAt ? bucket.createdAt.toISOString().slice(0, 10) : '',
@@ -233,6 +259,11 @@
     results.appendChild(createEl('div', 'empty-state', text));
   }
 
+  function formatSessionId(id) {
+    var s = String(id);
+    return s.length > 12 ? '\u2026' + s.slice(-8) : s;
+  }
+
   function renderRows(list) {
     results.innerHTML = '';
 
@@ -248,18 +279,38 @@
       var right = createEl('div');
       var body = createEl('div', 'history-body');
 
-      left.appendChild(createEl('p', 'history-company', row.company || 'N/A'));
-      left.appendChild(createEl('p', 'history-meta', 'Session: ' + String(row.id)));
+      var companyEl;
+      if (row.company) {
+        companyEl = createEl('p', 'history-company', row.company);
+      } else {
+        companyEl = createEl('p', 'history-company-muted', 'No company');
+      }
+
+      if (row.userType) {
+        var badgeClass = row.userType === 'business' ? 'business' : 'individual';
+        var badgeLabel = row.userType === 'business' ? 'Business' : 'Individual';
+        var badge = createEl('span', 'user-type-badge ' + badgeClass, badgeLabel);
+        companyEl.appendChild(badge);
+      }
+
+      left.appendChild(companyEl);
+      left.appendChild(createEl('p', 'history-meta', 'Session: ' + formatSessionId(row.id)));
 
       right.appendChild(createEl('p', 'history-date', row.createdAtLabel));
-      right.appendChild(createEl('p', 'history-meta', row.messages.length + ' parsed messages'));
+      right.appendChild(createEl('p', 'history-meta', row.messages.length + ' message' + (row.messages.length === 1 ? '' : 's')));
 
       if (row.messages.length === 0) {
-        body.appendChild(createEl('div', 'message-row system', 'No parseable messages found in this row.'));
+        body.appendChild(createEl('div', 'message-row system', 'No parseable messages found.'));
       } else {
         row.messages.forEach(function (msg) {
           var role = msg.role === 'user' || msg.role === 'bot' ? msg.role : 'system';
-          body.appendChild(createEl('div', 'message-row ' + role, '[' + role.toUpperCase() + '] ' + msg.text));
+          var msgEl = createEl('div', 'message-row ' + role);
+          var roleLabel = createEl('span', 'msg-role-label', role === 'bot' ? 'Bot' : role === 'user' ? 'User' : 'System');
+          var textEl = createEl('span', 'msg-text');
+          textEl.innerHTML = linkifyText(msg.text);
+          msgEl.appendChild(roleLabel);
+          msgEl.appendChild(textEl);
+          body.appendChild(msgEl);
         });
       }
 
