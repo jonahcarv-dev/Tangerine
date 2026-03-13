@@ -48,6 +48,8 @@
 	let togglePulseStopped = false;
 	let introPromptShown = false;
 	let businessNamePending = false;
+	let sessionUserType = null;
+	let sessionCompanyName = null;
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -167,7 +169,7 @@
 		if (businessNamePending) return;
 		businessNamePending = true;
 		setChatInputEnabled(false);
-		appendMessage('Please enter your buiness name to continue.', 'bot');
+		appendMessage('Please enter your business name to continue.', 'bot');
 
 		var entry = document.createElement('div');
 		entry.className = 'message-intro-business-entry';
@@ -192,6 +194,9 @@
 			entry.remove();
 			appendMessage(BUSINESS_BOT_GREETING, 'bot');
 			businessNamePending = false;
+			sessionUserType = 'business';
+			sessionCompanyName = businessName;
+			saveSessionMetadata('business', businessName);
 			setChatInputEnabled(true);
 			input.focus();
 		}
@@ -255,6 +260,9 @@
 					});
 
 					appendMessage(DEFAULT_BOT_GREETING, 'bot');
+					sessionUserType = 'self';
+					sessionCompanyName = null;
+					saveSessionMetadata('self', null);
 					setChatInputEnabled(true);
 					input.focus();
 				}
@@ -313,6 +321,28 @@
 
 		var data = await response.json();
 		return extractReply(data);
+	}
+
+	/* ── Session metadata persistence ─────────────────── */
+	function saveSessionMetadata(userType, companyName) {
+		var cfg = window.TANGERINE_CONFIG || {};
+		var url = cfg.supabaseUrl;
+		var key = cfg.supabaseAnonKey;
+		if (!url || !key) return;
+		fetch(url + '/functions/v1/save-session-metadata', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': 'Bearer ' + key
+			},
+			body: JSON.stringify({
+				sessionId: currentSessionId,
+				userType: userType,
+				companyName: companyName || null
+			})
+		}).catch(function (err) {
+			console.warn('Tangerine widget: failed to save session metadata', err);
+		});
 	}
 
 	/* ── Tooltip ───────────────────────────────────────── */

@@ -47,7 +47,8 @@ function sanitizeRow(row: Record<string, unknown>) {
     'createdAt',
     'date',
     'inserted_at',
-    'updated_at'
+    'updated_at',
+    'user_type'
   ];
 
   const sanitized: Record<string, unknown> = {};
@@ -145,6 +146,21 @@ Deno.serve(async (request) => {
   }
 
   let rows = Array.isArray(data) ? data : [];
+
+  // Enrich rows with session metadata (user_type, company_name)
+  const { data: metaRows } = await supabase
+    .from('chat_session_metadata')
+    .select('session_id, user_type, company_name');
+
+  const metaMap = new Map<string, Record<string, unknown>>();
+  if (Array.isArray(metaRows)) {
+    metaRows.forEach((m: any) => metaMap.set(m.session_id, m));
+  }
+
+  rows = rows.map((row: any) => {
+    const meta = metaMap.get(row.session_id);
+    return meta ? { ...row, company_name: meta.company_name, user_type: meta.user_type } : row;
+  });
 
   rows.sort((a, b) => {
     const aDate = new Date(String(a.created_at || a.timestamp || a.createdAt || a.date || a.inserted_at || a.updated_at || '')).getTime();
