@@ -241,7 +241,7 @@
           createdAt: bucket.createdAt,
           createdAtLabel: bucket.createdAt ? bucket.createdAt.toLocaleString() : 'Unknown date',
           dateKey: bucket.createdAt ? bucket.createdAt.toISOString().slice(0, 10) : '',
-          messages: bucket.messages
+          messages: bucket.messages.slice().reverse()
         };
       })
       .sort(function (a, b) {
