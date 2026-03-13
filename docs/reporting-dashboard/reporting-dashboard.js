@@ -587,4 +587,27 @@
   setStatus('Enter your dashboard access token to load chat histories.');
   renderEmpty('This page now uses a secure reporting endpoint instead of direct browser access to Supabase.');
   setCount('0 results');
+  // Theme toggle
+  var themeToggle = document.getElementById('themeToggle');
+  var THEME_KEY = 'tangerine_theme';
+
+  function applyTheme(theme) {
+    if (theme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      themeToggle.textContent = 'Light Mode';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      themeToggle.textContent = 'Dark Mode';
+    }
+  }
+
+  var savedTheme = localStorage.getItem(THEME_KEY) || 'light';
+  applyTheme(savedTheme);
+
+  themeToggle.addEventListener('click', function () {
+    var current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    var next = current === 'dark' ? 'light' : 'dark';
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
+  });
 })();
