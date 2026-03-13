@@ -210,6 +210,7 @@
           company: rowCompany,
           userType: rowUserType,
           createdAt: rowDate,
+          earliestDate: rowDate,
           messages: []
         };
       }
@@ -224,6 +225,10 @@
 
       if (rowDate && (!buckets[key].createdAt || rowDate > buckets[key].createdAt)) {
         buckets[key].createdAt = rowDate;
+      }
+
+      if (rowDate && (!buckets[key].earliestDate || rowDate < buckets[key].earliestDate)) {
+        buckets[key].earliestDate = rowDate;
       }
 
       if (rowMessages.length > 0) {
@@ -241,6 +246,7 @@
           createdAt: bucket.createdAt,
           createdAtLabel: bucket.createdAt ? bucket.createdAt.toLocaleString() : 'Unknown date',
           dateKey: bucket.createdAt ? bucket.createdAt.toISOString().slice(0, 10) : '',
+          duration: formatDuration(bucket.earliestDate, bucket.createdAt),
           messages: bucket.messages.slice().reverse()
         };
       })
@@ -250,6 +256,32 @@
         if (b.createdAt) return 1;
         return String(b.id).localeCompare(String(a.id));
       });
+  }
+
+  function formatDuration(earliestDate, latestDate) {
+    if (!earliestDate || !latestDate) return null;
+    var now = new Date();
+    var ACTIVE_THRESHOLD_MS = 15 * 60 * 1000; // 15 minutes
+
+    var isActive = (now - latestDate) < ACTIVE_THRESHOLD_MS;
+    var diffMs = latestDate - earliestDate;
+
+    if (diffMs < 1000) {
+      return isActive ? 'In progress' : 'Under a minute';
+    }
+
+    var totalSeconds = Math.floor(diffMs / 1000);
+    var hours = Math.floor(totalSeconds / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+
+    var parts = [];
+    if (hours > 0) parts.push(hours + 'h');
+    if (minutes > 0) parts.push(minutes + 'm');
+    if (hours === 0 && seconds > 0) parts.push(seconds + 's');
+
+    var label = parts.join(' ');
+    return isActive ? label + ' (in progress)' : label;
   }
 
   function createEl(tag, className, text) {
@@ -302,7 +334,16 @@
       left.appendChild(createEl('p', 'history-meta', 'Session: ' + formatSessionId(row.id)));
 
       right.appendChild(createEl('p', 'history-date', row.createdAtLabel));
-      right.appendChild(createEl('p', 'history-meta', row.messages.length + ' message' + (row.messages.length === 1 ? '' : 's')));
+      var metaLine = createEl('p', 'history-meta');
+      metaLine.textContent = row.messages.length + ' message' + (row.messages.length === 1 ? '' : 's');
+      if (row.duration) {
+        var sep = document.createTextNode('  \u00B7  ');
+        metaLine.appendChild(sep);
+        var isActive = row.duration.indexOf('in progress') !== -1;
+        var durationSpan = createEl('span', isActive ? 'duration-active' : '', row.duration);
+        metaLine.appendChild(durationSpan);
+      }
+      right.appendChild(metaLine);
 
       if (row.messages.length === 0) {
         body.appendChild(createEl('div', 'message-row system', 'No parseable messages found.'));
