@@ -32,6 +32,7 @@
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
 	width: 240px;
 	animation: tooltipFadeIn 0.3s ease;
+	z-index: 1;
 }
 
 .chat-tooltip::after {
@@ -89,6 +90,7 @@
 .chat-toggle:hover {
 	background: linear-gradient(135deg, #f0a45e 0%, #f68b49 30%, #f47150 60%, #f26951 100%);
 	transform: scale(1.05);
+	z-index: -3;
 }
 
 .chat-toggle.chat-toggle-pulse {
