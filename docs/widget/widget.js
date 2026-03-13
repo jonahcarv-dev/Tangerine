@@ -5,6 +5,7 @@
 	const panel = document.getElementById('chatPanel');
 	const form = document.getElementById('chatForm');
 	const input = document.getElementById('chatInput');
+	const sendButton = form ? form.querySelector('button[type="submit"], button') : null;
 	const messages = document.getElementById('chatMessages');
 	const tooltip = document.getElementById('chatTooltip');
 	const tooltipClose = document.getElementById('chatTooltipClose');
@@ -36,9 +37,17 @@
 		'<line x1="4" y1="4" x2="12" y2="12"/>' +
 		'<line x1="12" y1="4" x2="4" y2="12"/></svg>';
 
-	const WELCOME_MESSAGE = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
+	const DEFAULT_BOT_GREETING = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const BUSINESS_BOT_GREETING = "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const ENTRY_PROMPT_OPTIONS = [
+		{ value: 'business', label: 'Business' },
+		{ value: 'self', label: 'Yourself' }
+	];
 	const TOGGLE_PULSE_CLASS = 'chat-toggle-pulse';
 	let togglePulseStopped = false;
+	let introPromptShown = false;
+	let businessNamePending = false;
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -147,6 +156,122 @@
 			currentMessages.push({ role: role, text: text });
 			ConversationStore.save(currentSessionId, currentMessages);
 		}
+	}
+
+	function setChatInputEnabled(enabled) {
+		input.disabled = !enabled;
+		if (sendButton) sendButton.disabled = !enabled;
+	}
+
+	function showBusinessNamePrompt() {
+		if (businessNamePending) return;
+		businessNamePending = true;
+		setChatInputEnabled(false);
+		appendMessage('Please enter your buiness name to continue.', 'bot');
+
+		var entry = document.createElement('div');
+		entry.className = 'message-intro-business-entry';
+
+		var businessInput = document.createElement('input');
+		businessInput.type = 'text';
+		businessInput.placeholder = 'Business name';
+		businessInput.autocomplete = 'organization';
+
+		var continueBtn = document.createElement('button');
+		continueBtn.type = 'button';
+		continueBtn.textContent = 'Continue';
+
+		function submitBusinessName() {
+			var businessName = businessInput.value.trim();
+			if (!businessName) {
+				businessInput.focus();
+				return;
+			}
+
+			appendMessage(businessName, 'user');
+			entry.remove();
+			appendMessage(BUSINESS_BOT_GREETING, 'bot');
+			businessNamePending = false;
+			setChatInputEnabled(true);
+			input.focus();
+		}
+
+		continueBtn.addEventListener('click', submitBusinessName);
+		businessInput.addEventListener('keydown', function (event) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				submitBusinessName();
+			}
+		});
+
+		entry.appendChild(businessInput);
+		entry.appendChild(continueBtn);
+		messages.appendChild(entry);
+		messages.scrollTop = messages.scrollHeight;
+		businessInput.focus();
+	}
+
+	function addEntryPromptMessage() {
+		var prompt = document.createElement('div');
+		prompt.className = 'message bot message-intro';
+		prompt.textContent = WELCOME_MESSAGE;
+
+		var options = document.createElement('div');
+		options.className = 'message-intro-options';
+
+		ENTRY_PROMPT_OPTIONS.forEach(function (option, index) {
+			var button = document.createElement('button');
+			button.type = 'button';
+			button.className = 'message-intro-option';
+			button.setAttribute('aria-label', index === 0 ? 'Business option' : 'Self option');
+			button.dataset.value = option.value;
+			button.textContent = option.label;
+			button.addEventListener('click', function () {
+				options.setAttribute('data-selected', option.value);
+				if (option.value === 'business') {
+					if (options.getAttribute('data-flow-complete') === '1') return;
+					options.setAttribute('data-flow-complete', '1');
+
+					var optionButtons = options.querySelectorAll('.message-intro-option');
+					optionButtons.forEach(function (btn) {
+						if (btn.dataset.value !== 'business') {
+							btn.remove();
+						}
+					});
+
+					showBusinessNamePrompt();
+					return;
+				}
+
+				if (option.value === 'self') {
+					if (options.getAttribute('data-flow-complete') === '1') return;
+					options.setAttribute('data-flow-complete', '1');
+
+					var allButtons = options.querySelectorAll('.message-intro-option');
+					allButtons.forEach(function (btn) {
+						if (btn.dataset.value !== 'self') {
+							btn.remove();
+						}
+					});
+
+					appendMessage(DEFAULT_BOT_GREETING, 'bot');
+					setChatInputEnabled(true);
+					input.focus();
+				}
+			});
+			options.appendChild(button);
+		});
+
+		messages.appendChild(prompt);
+		messages.appendChild(options);
+		messages.scrollTop = messages.scrollHeight;
+		introPromptShown = true;
+	}
+
+	function ensureIntroPrompt() {
+		if (introPromptShown || currentMessages.length > 0) return;
+		messages.innerHTML = '';
+		addEntryPromptMessage();
 	}
 
 	function getBotReply(userText) {
@@ -339,6 +464,8 @@
 			messages.appendChild(item);
 		});
 		messages.scrollTop = messages.scrollHeight;
+		businessNamePending = false;
+		setChatInputEnabled(true);
 
 		switchToView('chat');
 	}
@@ -361,6 +488,7 @@
 		toggleButton.setAttribute('aria-label', 'Close chat');
 		hideTooltip();
 		switchToView('chat');
+		ensureIntroPrompt();
 		input.focus();
 	});
 
@@ -373,12 +501,12 @@
 
 			currentSessionId = generateSessionId();
 			currentMessages = [];
+			businessNamePending = false;
+			setChatInputEnabled(true);
 
 			messages.innerHTML = '';
-			var welcome = document.createElement('div');
-			welcome.className = 'message bot';
-			welcome.textContent = WELCOME_MESSAGE;
-			messages.appendChild(welcome);
+			introPromptShown = false;
+			ensureIntroPrompt();
 
 			switchToView('chat');
 			input.focus();
@@ -439,6 +567,7 @@
 	/* ── Form submit ───────────────────────────────────── */
 	form.addEventListener('submit', async function (event) {
 		event.preventDefault();
+		if (input.disabled || businessNamePending) return;
 		var userText = input.value.trim();
 		if (!userText) return;
 
