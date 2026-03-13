@@ -5,6 +5,7 @@
 	const panel = document.getElementById('chatPanel');
 	const form = document.getElementById('chatForm');
 	const input = document.getElementById('chatInput');
+	const sendButton = form ? form.querySelector('button[type="submit"], button') : null;
 	const messages = document.getElementById('chatMessages');
 	const tooltip = document.getElementById('chatTooltip');
 	const tooltipClose = document.getElementById('chatTooltipClose');
@@ -38,6 +39,7 @@
 
 	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
 	const DEFAULT_BOT_GREETING = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const BUSINESS_BOT_GREETING = "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
 	const ENTRY_PROMPT_OPTIONS = [
 		{ value: 'business', label: 'Business' },
 		{ value: 'self', label: 'Yourself' }
@@ -45,6 +47,7 @@
 	const TOGGLE_PULSE_CLASS = 'chat-toggle-pulse';
 	let togglePulseStopped = false;
 	let introPromptShown = false;
+	let businessNamePending = false;
 
 	function generateSessionId() {
 		return 'session-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
@@ -155,6 +158,59 @@
 		}
 	}
 
+	function setChatInputEnabled(enabled) {
+		input.disabled = !enabled;
+		if (sendButton) sendButton.disabled = !enabled;
+	}
+
+	function showBusinessNamePrompt() {
+		if (businessNamePending) return;
+		businessNamePending = true;
+		setChatInputEnabled(false);
+		appendMessage('Please enter your buiness name to continue.', 'bot');
+
+		var entry = document.createElement('div');
+		entry.className = 'message-intro-business-entry';
+
+		var businessInput = document.createElement('input');
+		businessInput.type = 'text';
+		businessInput.placeholder = 'Business name';
+		businessInput.autocomplete = 'organization';
+
+		var continueBtn = document.createElement('button');
+		continueBtn.type = 'button';
+		continueBtn.textContent = 'Continue';
+
+		function submitBusinessName() {
+			var businessName = businessInput.value.trim();
+			if (!businessName) {
+				businessInput.focus();
+				return;
+			}
+
+			appendMessage(businessName, 'user');
+			entry.remove();
+			appendMessage(BUSINESS_BOT_GREETING, 'bot');
+			businessNamePending = false;
+			setChatInputEnabled(true);
+			input.focus();
+		}
+
+		continueBtn.addEventListener('click', submitBusinessName);
+		businessInput.addEventListener('keydown', function (event) {
+			if (event.key === 'Enter') {
+				event.preventDefault();
+				submitBusinessName();
+			}
+		});
+
+		entry.appendChild(businessInput);
+		entry.appendChild(continueBtn);
+		messages.appendChild(entry);
+		messages.scrollTop = messages.scrollHeight;
+		businessInput.focus();
+	}
+
 	function addEntryPromptMessage() {
 		var prompt = document.createElement('div');
 		prompt.className = 'message bot message-intro';
@@ -172,6 +228,21 @@
 			button.textContent = option.label;
 			button.addEventListener('click', function () {
 				options.setAttribute('data-selected', option.value);
+				if (option.value === 'business') {
+					if (options.getAttribute('data-flow-complete') === '1') return;
+					options.setAttribute('data-flow-complete', '1');
+
+					var optionButtons = options.querySelectorAll('.message-intro-option');
+					optionButtons.forEach(function (btn) {
+						if (btn.dataset.value !== 'business') {
+							btn.remove();
+						}
+					});
+
+					showBusinessNamePrompt();
+					return;
+				}
+
 				if (option.value === 'self') {
 					if (options.getAttribute('data-flow-complete') === '1') return;
 					options.setAttribute('data-flow-complete', '1');
@@ -184,6 +255,7 @@
 					});
 
 					appendMessage(DEFAULT_BOT_GREETING, 'bot');
+					setChatInputEnabled(true);
 					input.focus();
 				}
 			});
@@ -392,6 +464,8 @@
 			messages.appendChild(item);
 		});
 		messages.scrollTop = messages.scrollHeight;
+		businessNamePending = false;
+		setChatInputEnabled(true);
 
 		switchToView('chat');
 	}
@@ -427,6 +501,8 @@
 
 			currentSessionId = generateSessionId();
 			currentMessages = [];
+			businessNamePending = false;
+			setChatInputEnabled(true);
 
 			messages.innerHTML = '';
 			introPromptShown = false;
@@ -491,6 +567,7 @@
 	/* ── Form submit ───────────────────────────────────── */
 	form.addEventListener('submit', async function (event) {
 		event.preventDefault();
+		if (input.disabled || businessNamePending) return;
 		var userText = input.value.trim();
 		if (!userText) return;
 
