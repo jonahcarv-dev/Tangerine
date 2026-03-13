@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tangerine Reporting Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Be+Vietnam+Pro:400,500,600,700%7CMulish:400,600,700"
+  />
+  <link rel="stylesheet" href="reporting-dashboard.css" />
+</head>
+<body>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Tangerine Search</p>
+        <h1>Reporting Dashboard</h1>
+        <p class="subtitle">Browse parsed chat histories by company and date.</p>
+      </div>
+      <a class="header-link" href="index.html">Back To Site</a>
+    </header>
+
+    <section class="toolbar" aria-label="Report filters">
+      <label class="field">
+        <span>Company Name</span>
+        <input id="companyFilter" type="search" placeholder="Search company" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>Date</span>
+        <input id="dateFilter" type="date" />
+      </label>
+
+      <div class="toolbar-actions">
+        <button id="refreshBtn" type="button" class="btn btn-primary">Refresh</button>
+        <button id="clearBtn" type="button" class="btn btn-secondary">Clear</button>
+      </div>
+    </section>
+
+    <section class="status-row" aria-live="polite">
+      <p id="statusText">Initializing dashboard...</p>
+      <p id="resultCount" class="result-count"></p>
+    </section>
+
+    <section id="results" class="results" aria-label="Chat history results"></section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="reporting-dashboard.js"></script>
+</body>
+</html>
