@@ -84,7 +84,7 @@ h1 {
 
 .toolbar {
   display: grid;
-  grid-template-columns: minmax(260px, 1.2fr) minmax(220px, 1fr) minmax(180px, 240px) auto;
+  grid-template-columns: minmax(150px, 0.65fr) minmax(190px, 0.9fr) minmax(145px, 0.68fr) minmax(130px, 165px) minmax(280px, 1.2fr);
   gap: 0.7rem;
   border: 1px solid var(--tg-border);
   border-radius: 12px;
@@ -94,6 +94,7 @@ h1 {
 
 .field-token {
   min-width: 0;
+  max-width: 210px;
 }
 
 .field {
@@ -118,16 +119,54 @@ h1 {
   font: inherit;
 }
 
-.field input:focus {
+.field select {
+  width: 100%;
+  border: 1px solid #cfd5e8;
+  border-radius: 9px;
+  padding: 0.55rem 0.65rem;
+  color: var(--tg-ink);
+  background: var(--tg-white);
+  font: inherit;
+}
+
+.field input:focus,
+.field select:focus {
   outline: none;
   border-color: var(--tg-orange);
   box-shadow: 0 0 0 2px rgba(244, 118, 79, 0.16);
 }
 
+.custom-date-range {
+  min-width: 0;
+}
+
+.custom-date-range.is-disabled {
+  opacity: 0.55;
+}
+
+.custom-date-range-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.custom-date-range-inputs input {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+
+.custom-date-range.is-disabled .custom-date-range-inputs input {
+  pointer-events: none;
+  background: #f1f4f9;
+  border-color: #d7dce6;
+}
+
 .toolbar-actions {
   display: flex;
   gap: 0.5rem;
-  align-items: flex-end;
+  align-items: center;
+  justify-content: flex-end;
+  grid-column: 1 / -1;
 }
 
 .btn {
