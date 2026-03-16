@@ -34,3 +34,7 @@ build/
 
 # Logs
 *.log
+
+# Project folders to ignore
+Chunking Script/
+supabase/
