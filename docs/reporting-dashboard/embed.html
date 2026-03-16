@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tangerine Reporting Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="https://jonahcarv-dev.github.io/Tangerine/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Be+Vietnam+Pro:400,500,600,700%7CMulish:400,600,700"
+  />
+  <link rel="stylesheet" href="reporting-dashboard.css" />
+</head>
+<body>
+  <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle dark mode"></button>
+  <main class="dashboard-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Tangerine Search</p>
+        <h1>Reporting Dashboard</h1>
+        <p class="subtitle">Browse parsed chat histories by company and date.</p>
+      </div>
+      <div class="header-actions">
+        <a class="header-link header-link-secondary" href="../analytics-dashboard/embed.html">View Analytics Dashboard</a>
+      </div>
+    </header>
+
+    <section class="toolbar" aria-label="Report filters">
+      <label class="field field-token">
+        <span>Dashboard Access Token</span>
+        <input id="accessToken" type="password" placeholder="Enter access token" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>Company Name</span>
+        <input id="companyFilter" type="search" placeholder="Search company" autocomplete="off" />
+      </label>
+
+      <label class="field">
+        <span>User Type</span>
+        <select id="userTypeFilter" aria-label="User type filter">
+          <option value="all">All Users</option>
+          <option value="company">Company Users</option>
+          <option value="individual">Individual Users</option>
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Date Range</span>
+        <select id="datePresetFilter" aria-label="Date range preset">
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="past_week">Past Week</option>
+          <option value="past_month">Past Month</option>
+          <option value="past_3_months">Past 3 Months</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </label>
+
+      <div id="customDateRange" class="field custom-date-range">
+        <span>Custom Date Range</span>
+        <div class="custom-date-range-inputs">
+          <input id="dateStartFilter" type="date" aria-label="Start date" />
+          <input id="dateEndFilter" type="date" aria-label="End date" />
+        </div>
+      </div>
+
+      <div class="toolbar-actions">
+        <button id="refreshBtn" type="button" class="btn btn-primary">Refresh</button>
+        <button id="clearBtn" type="button" class="btn btn-secondary">Clear</button>
+      </div>
+    </section>
+
+    <section class="status-row" aria-live="polite">
+      <p id="statusText">Initializing dashboard...</p>
+      <p id="resultCount" class="result-count"></p>
+    </section>
+
+    <section id="results" class="results" aria-label="Chat history results"></section>
+  </main>
+  <script>
+    // Inline config — no relative ../config.js dependency
+    window.TANGERINE_CONFIG = {
+      reportingApiUrl: 'https://ftsvpdkfpxjnfmdcbmfk.supabase.co/functions/v1/reporting-dashboard',
+      reportingLimit: 0
+    };
+  </script>
+  <script src="reporting-dashboard.js"></script>
+</body>
+</html>

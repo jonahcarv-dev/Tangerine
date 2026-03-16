@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tangerine Analytics Dashboard</title>
+  <link rel="icon" type="image/svg+xml" href="https://jonahcarv-dev.github.io/Tangerine/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Be+Vietnam+Pro:400,500,600,700%7CMulish:400,600,700"
+  />
+  <link rel="stylesheet" href="analytics-dashboard.css" />
+</head>
+<body>
+  <button id="themeToggle" type="button" class="theme-toggle" aria-label="Toggle dark mode"></button>
+  <main class="dashboard-shell analytics-shell">
+    <header class="dashboard-header">
+      <div>
+        <p class="eyebrow">Tangerine Search</p>
+        <h1>Analytics Dashboard</h1>
+        <p class="subtitle">Visual summaries of reporting data across conversation volume, user intent, and chat duration.</p>
+      </div>
+      <div class="header-actions">
+        <a class="header-link header-link-secondary" href="../reporting-dashboard/embed.html">View Reporting Dashboard</a>
+      </div>
+    </header>
+
+    <section class="analytics-toolbar" aria-label="Analytics controls">
+      <label class="field field-token">
+        <span>Dashboard Access Token</span>
+        <input id="accessToken" type="password" placeholder="Enter access token" autocomplete="off" />
+      </label>
+
+      <label class="field trend-field">
+        <span>Trend Range</span>
+        <select id="trendPresetFilter" aria-label="Trend date range preset">
+          <option value="all">All Dates</option>
+          <option value="today">Today</option>
+          <option value="past_week">Past Week</option>
+          <option value="past_month">Past Month</option>
+          <option value="past_3_months">Past 3 Months</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </label>
+
+      <div id="trendCustomDateRange" class="field trend-custom-date-range is-disabled">
+        <span>Custom Date Range</span>
+        <div class="custom-date-range-inputs">
+          <input id="trendDateStartFilter" type="date" aria-label="Trend start date" disabled />
+          <input id="trendDateEndFilter" type="date" aria-label="Trend end date" disabled />
+        </div>
+      </div>
+
+      <div class="toolbar-actions">
+        <button id="refreshBtn" type="button" class="btn btn-primary">Refresh Analytics</button>
+      </div>
+    </section>
+
+    <section class="status-row" aria-live="polite">
+      <p id="statusText">Initializing analytics...</p>
+      <p id="resultCount" class="result-count"></p>
+    </section>
+
+    <section class="stats-grid stats-grid-primary" aria-label="Analytics overview">
+      <article class="stat-card">
+        <p class="stat-label">Conversations</p>
+        <p id="conversationCount" class="stat-value">0</p>
+        <p class="stat-meta">Unique chat sessions in the current data pull.</p>
+      </article>
+
+      <article class="stat-card">
+        <p class="stat-label">Average Messages</p>
+        <p id="avgMessages" class="stat-value">0</p>
+        <p id="messagesMeta" class="stat-meta">Messages per conversation across the current data pull.</p>
+      </article>
+
+      <article class="stat-card">
+        <p class="stat-label">Average Chat Duration</p>
+        <p id="avgDuration" class="stat-value">0m</p>
+        <p id="durationMeta" class="stat-meta">Time between first and last message in a session.</p>
+      </article>
+    </section>
+
+    <section class="stats-grid stats-grid-secondary" aria-label="Additional analytics overview">
+      <article class="stat-card">
+        <p class="stat-label">Business vs Job Seekers</p>
+        <p id="ratioSummary" class="stat-value stat-value-small">0 / 0</p>
+        <p id="ratioMeta" class="stat-meta">Counts and percentages by session intent.</p>
+      </article>
+
+      <article class="stat-card">
+        <p class="stat-label">Top Company</p>
+        <p id="topCompany" class="stat-value stat-value-small">None</p>
+        <p id="topCompanyMeta" class="stat-meta">Most frequently identified company in captured conversations.</p>
+      </article>
+    </section>
+
+    <section class="charts-grid" aria-label="Analytics charts">
+      <article class="chart-card">
+        <div class="chart-header">
+          <div>
+            <p class="chart-label">Conversation Type Ratio</p>
+            <h2>Business Services vs Job Seekers</h2>
+          </div>
+        </div>
+        <div class="chart-wrap chart-wrap-donut">
+          <canvas id="ratioChart"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card">
+        <div class="chart-header">
+          <div>
+            <p class="chart-label">Chat Duration</p>
+            <h2>Duration Distribution</h2>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="durationChart"></canvas>
+        </div>
+      </article>
+
+      <article class="chart-card chart-card-wide">
+        <div class="chart-header">
+          <div>
+            <p class="chart-label">Conversation Trend</p>
+            <h2>Sessions Over Time</h2>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Inline config — no relative ../config.js dependency
+    window.TANGERINE_CONFIG = {
+      reportingApiUrl: 'https://ftsvpdkfpxjnfmdcbmfk.supabase.co/functions/v1/reporting-dashboard',
+      reportingLimit: 0
+    };
+  </script>
+  <script src="analytics-dashboard.js"></script>
+</body>
+</html>
