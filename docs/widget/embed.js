@@ -72,7 +72,7 @@
     '  </div>',
     '',
     '  <div class="chat-tooltip" id="chatTooltip" hidden>',
-    '    Ask me anything about Tangerine Search!',
+    '    Hiring for a technical role? Let\u2019s see if Tangerine is a fit.',
     '    <button class="chat-tooltip-close" id="chatTooltipClose" aria-label="Dismiss tooltip">&times;</button>',
     '  </div>',
     '',

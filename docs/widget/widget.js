@@ -369,6 +369,35 @@
 	/* ── Tooltip ───────────────────────────────────────── */
 	var tooltipDismissed = false;
 
+	/* ── Page-specific opener message ─────────────────── */
+	(function setPageTooltip() {
+		if (!tooltip) return;
+		var cfg = window.TANGERINE_CONFIG || {};
+		// Allow host page to override via config
+		if (cfg.tooltipMessage) {
+			tooltip.firstChild.textContent = cfg.tooltipMessage;
+			return;
+		}
+		var path = window.location.pathname.toLowerCase().replace(/\/+$/, '');
+		var msg;
+		if (path === '' || path === '/' || /\/(home|index(\.html)?)$/.test(path)) {
+			msg = 'Need to hire a technical role fast? We place vetted candidates in 2\u20133 days.';
+		} else if (/\/services/.test(path)) {
+			msg = 'Not sure which service fits your situation? I can help you figure it out.';
+		} else if (/\/(insights|blog|articles|news)/.test(path)) {
+			msg = 'Enjoying the content? If you\u2019re also dealing with a hiring challenge, I can help with that too.';
+		} else if (/\/contact/.test(path)) {
+			msg = 'Looking to get in touch? I can answer questions right now or help you book a call.';
+		} else {
+			msg = 'Hiring for a technical role? Let\u2019s see if Tangerine is a fit.';
+		}
+		// Replace the text node inside the tooltip (preserve the close button)
+		var firstText = tooltip.firstChild;
+		if (firstText && firstText.nodeType === 3) {
+			firstText.textContent = msg + ' ';
+		}
+	})();
+
 	function showTooltip() {
 		if (tooltipDismissed || !tooltip) return;
 		if (panel && !panel.hasAttribute('hidden')) return;
@@ -382,7 +411,7 @@
 	}
 
 	if (!sessionStorage.getItem('tangerine_tooltip_dismissed')) {
-		window.setTimeout(showTooltip, 2000);
+		window.setTimeout(showTooltip, 800);
 	} else {
 		tooltipDismissed = true;
 	}
