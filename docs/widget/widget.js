@@ -419,14 +419,9 @@
 	function hideTooltip() {
 		if (tooltip) tooltip.setAttribute('hidden', '');
 		tooltipDismissed = true;
-		try { sessionStorage.setItem('tangerine_tooltip_dismissed', '1'); } catch (_e) {}
 	}
 
-	if (!sessionStorage.getItem('tangerine_tooltip_dismissed')) {
-		window.setTimeout(showTooltip, 800);
-	} else {
-		tooltipDismissed = true;
-	}
+	window.setTimeout(showTooltip, 800);
 
 	if (tooltipClose) {
 		tooltipClose.addEventListener('click', function (e) {
