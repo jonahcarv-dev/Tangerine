@@ -39,7 +39,7 @@
 
 	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
 	var isInsightsPage = /\/insights(\/|$)/i.test(window.location.pathname);
-	var INSIGHTS_NEWSLETTER_CTA = 'By the way, if you want hiring tips delivered to your inbox, [sign up for The Squeeze](https://www.tangerinesearch.net/the-squeeze-signup)! Now, what can I help you with?';
+	var INSIGHTS_NEWSLETTER_CTA = 'By the way, if you want hiring tips delivered to your inbox, [sign\u00A0up for The\u00A0Squeeze](https://www.tangerinesearch.net/the-squeeze-signup)! Now, what can I help you with?';
 	const DEFAULT_BOT_GREETING = isInsightsPage
 		? "Hi! I\u2019m the Tangerine assistant. " + INSIGHTS_NEWSLETTER_CTA
 		: "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
