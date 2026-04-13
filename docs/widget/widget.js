@@ -38,8 +38,14 @@
 		'<line x1="12" y1="4" x2="4" y2="12"/></svg>';
 
 	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
-	const DEFAULT_BOT_GREETING = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
-	const BUSINESS_BOT_GREETING = "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	var isInsightsPage = /\/insights(\/|$)/i.test(window.location.pathname);
+	var INSIGHTS_NEWSLETTER_CTA = 'By the way, if you want hiring tips delivered to your inbox, [sign up for The Squeeze](https://www.tangerinesearch.net/the-squeeze-signup)! Now, what can I help you with?';
+	const DEFAULT_BOT_GREETING = isInsightsPage
+		? "Hi! I\u2019m the Tangerine assistant. " + INSIGHTS_NEWSLETTER_CTA
+		: "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const BUSINESS_BOT_GREETING = isInsightsPage
+		? "Thanks! I\u2019m the Tangerine assistant. " + INSIGHTS_NEWSLETTER_CTA
+		: "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
 	const ENTRY_PROMPT_OPTIONS = [
 		{ value: 'business', label: 'Business' },
 		{ value: 'self', label: 'Myself' }
@@ -381,15 +387,15 @@
 		var path = window.location.pathname.toLowerCase().replace(/\/+$/, '');
 		var msg;
 		if (path === '' || path === '/') {
-			msg = 'Need to hire a technical role fast? We place vetted candidates in 2\u20133 days.';
+			msg = 'Need to hire fast? We present vetted talent in 2\u20133 days.';
 		} else if (/\/employers$/.test(path) || /\/scalable-hr$/.test(path)) {
 			msg = 'Not sure which service fits your situation? I can help you figure it out.';
 		} else if (/\/insights$/.test(path)) {
-			msg = 'Enjoying the content? If you\u2019re also dealing with a hiring challenge, I can help with that too.';
+			msg = 'Enjoying the content? Sign up for The Squeeze, our newsletter \u2014 or ask me about a hiring challenge!';
 		} else if (/\/contact$/.test(path)) {
 			msg = 'Looking to get in touch? I can answer questions right now or help you book a call.';
 		} else {
-			msg = 'Hiring for a technical role? Let\u2019s see if Tangerine is a fit.';
+			msg = 'Need to hire fast? Let\u2019s see if Tangerine is a fit.';
 		}
 		// Replace the text node inside the tooltip (preserve the close button)
 		var firstText = tooltip.firstChild;
