@@ -38,14 +38,8 @@
 		'<line x1="12" y1="4" x2="4" y2="12"/></svg>';
 
 	const WELCOME_MESSAGE = "Are you searching on behalf of a business or for yourself?";
-	var isInsightsPage = /\/insights(\/|$)/i.test(window.location.pathname);
-	var INSIGHTS_NEWSLETTER_CTA = 'By the way, if you want hiring tips delivered to your inbox, [sign\u00A0up for The\u00A0Squeeze](https://www.tangerinesearch.net/the-squeeze-signup)! Now, what can I help you with?';
-	const DEFAULT_BOT_GREETING = isInsightsPage
-		? "Hi! I\u2019m the Tangerine assistant. " + INSIGHTS_NEWSLETTER_CTA
-		: "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
-	const BUSINESS_BOT_GREETING = isInsightsPage
-		? "Thanks! I\u2019m the Tangerine assistant. " + INSIGHTS_NEWSLETTER_CTA
-		: "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const DEFAULT_BOT_GREETING = "Hi! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
+	const BUSINESS_BOT_GREETING = "Thanks! I'm the Tangerine assistant. Ask me anything about Tangerine Search.";
 	const ENTRY_PROMPT_OPTIONS = [
 		{ value: 'business', label: 'Business' },
 		{ value: 'self', label: 'Myself' }
@@ -391,7 +385,19 @@
 		} else if (/\/employers$/.test(path) || /\/scalable-hr$/.test(path)) {
 			msg = 'Not sure which service fits your situation? I can help you figure it out.';
 		} else if (/\/insights$/.test(path)) {
-			msg = 'Enjoying the content? Sign up for The Squeeze, our newsletter \u2014 or ask me about a hiring challenge!';
+			// Insights: inject a clickable newsletter link
+			var closeBtn = tooltip.querySelector('#chatTooltipClose');
+			tooltip.innerHTML = '';
+			tooltip.appendChild(document.createTextNode('Enjoying the content? '));
+			var link = document.createElement('a');
+			link.href = 'https://www.tangerinesearch.net/the-squeeze-signup';
+			link.target = '_blank';
+			link.rel = 'noopener noreferrer';
+			link.textContent = 'Sign\u00A0up for The\u00A0Squeeze';
+			tooltip.appendChild(link);
+			tooltip.appendChild(document.createTextNode(', our newsletter \u2014 or ask me about a hiring challenge! '));
+			if (closeBtn) tooltip.appendChild(closeBtn);
+			return;
 		} else if (/\/contact$/.test(path)) {
 			msg = 'Looking to get in touch? I can answer questions right now or help you book a call.';
 		} else {

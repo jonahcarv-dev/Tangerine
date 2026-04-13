@@ -51,6 +51,12 @@
 	display: none;
 }
 
+.chat-tooltip a {
+	color: var(--tw-orange);
+	text-decoration: underline;
+	font-weight: 500;
+}
+
 .chat-tooltip-close {
 	position: absolute;
 	top: 4px;
