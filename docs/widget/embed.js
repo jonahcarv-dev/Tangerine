@@ -10,6 +10,10 @@
 (function () {
   'use strict';
 
+  // Do not load widget on excluded pages
+  var path = window.location.pathname.replace(/\/$/, '');
+  if (path === '/jobs') return;
+
   var BASE_URL = 'https://jonahcarv-dev.github.io/Tangerine/widget';
 
   // 1. Set config (public credentials only — protected by Supabase RLS)
