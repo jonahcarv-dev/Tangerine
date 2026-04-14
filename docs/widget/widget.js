@@ -1,4 +1,9 @@
 (function () {
+	/* ── Page exclusions ───────────────────────────────── */
+	if (window.location.pathname === '/jobs' || window.location.pathname === '/jobs/') {
+		return;
+	}
+
 	/* ── DOM references ────────────────────────────────── */
 	const widgetRoot = document.querySelector('.chat-widget');
 	const toggleButton = document.getElementById('chatToggle');
